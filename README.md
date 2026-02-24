@@ -1,6 +1,6 @@
 # Agent Governor
 
-**Same code across your team.**
+**Same standards and practices across your team.**
 
 ## What It Is
 
