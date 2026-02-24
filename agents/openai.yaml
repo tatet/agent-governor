@@ -1,0 +1,7 @@
+interface:
+  display_name: "Agent Governor"
+  short_description: "Native project governance for Codex repos"
+  default_prompt: "Use $agent-governor to initialize and apply project governance in this repository."
+
+policy:
+  allow_implicit_invocation: true
