@@ -1,9 +1,9 @@
 # Agent Governor
 
+**Same code across your team.**
+
 Agent Governor organizes project rules, planning, and working context inside your repository.
 Standards live in `project-governance/standards/`, are versioned with your code, and are shared across the team.
-
-**Same code across your team.**
 
 ## What It Does
 
