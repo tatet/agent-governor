@@ -2,6 +2,17 @@
 
 **Same code across your team.**
 
+## What It Is
+
+Agent Governor is a Codex skill for agent governance.
+It gives teams a shared, repository-native operating model for standards, planning, and work continuity.
+
+## Who It Is For
+
+- Teams using Codex with multiple contributors.
+- Projects that want shared standards in version control.
+- Teams that want consistent planning and implementation behavior across sessions.
+
 Agent Governor organizes project rules, planning, and working context inside your repository.
 Standards live in `project-governance/standards/`, are versioned with your code, and are shared across the team.
 
