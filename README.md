@@ -63,6 +63,10 @@ The result is more consistency in technical decisions, implementation, and gener
 - If the managed block in `AGENTS.md` is inconsistent, ask the agent to refresh it.
 - If state looks stale, ask the agent to save state for the current workstream.
 
+## Inspiration
+
+Agent Governor is inspired by [Agent OS](https://github.com/buildermethods/agent-os).
+
 ## License
 
 MIT. See `LICENSE`.
