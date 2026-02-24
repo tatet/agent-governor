@@ -14,9 +14,20 @@ if [[ -z "$repo_root" ]]; then
   exit 1
 fi
 
+assert_not_symlink() {
+  local path="$1"
+  local label="${2:-path}"
+  if [[ -L "$path" ]]; then
+    echo "Refusing to write $label because it is a symlink: $path" >&2
+    exit 1
+  fi
+}
+
 agents_file="$repo_root/AGENTS.md"
 start_marker="<!-- agent-governor:start -->"
 end_marker="<!-- agent-governor:end -->"
+
+assert_not_symlink "$agents_file" "$agents_file"
 
 tmpdir="$(mktemp -d)"
 cleanup() {

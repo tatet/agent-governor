@@ -20,9 +20,20 @@ if [[ -z "$repo_root" ]]; then
   exit 1
 fi
 
+assert_not_symlink() {
+  local path="$1"
+  local label="${2:-path}"
+  if [[ -L "$path" ]]; then
+    echo "Refusing to write $label because it is a symlink: $path" >&2
+    exit 1
+  fi
+}
+
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 standards_dir="$($script_dir/governance-root.sh "$repo_root" "standards")"
 index_file="$standards_dir/index.yml"
+
+assert_not_symlink "$index_file" "$index_file"
 
 if [[ ! -d "$standards_dir" ]]; then
   echo "NO_STANDARDS_DIR"

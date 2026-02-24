@@ -34,6 +34,12 @@ fi
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 gov_root="$($script_dir/governance-root.sh "$repo_root")"
 
+tmpdir="$(mktemp -d)"
+cleanup() {
+  rm -rf "$tmpdir"
+}
+trap cleanup EXIT
+
 mission=""
 target_users=""
 solution=""
@@ -191,12 +197,15 @@ $backend_stack
 $database_stack
 "
 
-"$script_dir/enforce-standards-layout.sh" "$repo_root" >/tmp/agent-governor-enforce.out
+enforce_out="$tmpdir/enforce.out"
+agents_out="$tmpdir/agents.out"
+
+"$script_dir/enforce-standards-layout.sh" "$repo_root" >"$enforce_out"
 
 "$script_dir/state-memory.sh" save "$repo_root" "conversation" "governance-initialization" "global/coding-style,global/testing-quality,operations/ci-cd-release" "-"
 "$script_dir/state-memory.sh" log "$repo_root" "governance initialized at project-governance"
 
-"$script_dir/ensure-project-governance.sh" "$repo_root" >/tmp/agent-governor-agents.out
+"$script_dir/ensure-project-governance.sh" "$repo_root" >"$agents_out"
 
 echo "governance_root=$gov_root"
 echo "created_count=${#created[@]}"
@@ -209,6 +218,5 @@ for p in "${reused[@]}"; do
   echo "reused=$p"
 done
 
-echo "index_status=$(cat /tmp/agent-governor-enforce.out)"
-echo "agents_status=$(cat /tmp/agent-governor-agents.out)"
-rm -f /tmp/agent-governor-enforce.out /tmp/agent-governor-agents.out
+echo "index_status=$(cat "$enforce_out")"
+echo "agents_status=$(cat "$agents_out")"

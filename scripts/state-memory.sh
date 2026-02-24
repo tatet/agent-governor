@@ -12,6 +12,48 @@ USAGE
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+assert_not_symlink() {
+  local path="$1"
+  local label="${2:-path}"
+  if [[ -L "$path" ]]; then
+    echo "Refusing to write $label because it is a symlink: $path" >&2
+    exit 1
+  fi
+}
+
+yaml_escape() {
+  local value="$1"
+  value="${value//\\/\\\\}"
+  value="${value//\"/\\\"}"
+  value="${value//$'\n'/\\n}"
+  value="${value//$'\r'/\\r}"
+  value="${value//$'\t'/\\t}"
+  printf '%s' "$value"
+}
+
+yaml_quote() {
+  local value="$1"
+  printf '"%s"' "$(yaml_escape "$value")"
+}
+
+write_file_atomically() {
+  local target="$1"
+  local tmp_file
+
+  assert_not_symlink "$target" "$target"
+  tmp_file="$(mktemp "$state_dir/.tmp.XXXXXX")"
+
+  if ! cat > "$tmp_file"; then
+    rm -f "$tmp_file"
+    return 1
+  fi
+
+  if ! mv "$tmp_file" "$target"; then
+    rm -f "$tmp_file"
+    return 1
+  fi
+}
+
 state_paths() {
   local repo_root="$1"
   local gov_root
@@ -105,12 +147,21 @@ save_state() {
     spec_path="null"
   fi
 
-  cat > "$context_file" <<CTX
+  local scenario_yaml workstream_yaml spec_path_yaml
+  scenario_yaml="$(yaml_quote "$scenario")"
+  workstream_yaml="$(yaml_quote "$workstream")"
+  if [[ "$spec_path" == "null" ]]; then
+    spec_path_yaml="null"
+  else
+    spec_path_yaml="$(yaml_quote "$spec_path")"
+  fi
+
+  write_file_atomically "$context_file" <<CTX
 version: 1
 updated_at: $updated_at
-scenario: $scenario
-active_workstream: "$workstream"
-last_spec_path: $spec_path
+scenario: $scenario_yaml
+active_workstream: $workstream_yaml
+last_spec_path: $spec_path_yaml
 product_context_loaded: false
 ttl_days: 14
 CTX
@@ -123,9 +174,9 @@ CTX
       local trimmed
       trimmed="$(printf '%s' "$std" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
       [[ -z "$trimmed" ]] && continue
-      echo "  - $trimmed"
+      echo "  - $(yaml_quote "$trimmed")"
     done
-  } > "$standards_file"
+  } | write_file_atomically "$standards_file"
 }
 
 append_log() {
@@ -135,6 +186,7 @@ append_log() {
   state_paths "$repo_root"
   ensure_state_dir
 
+  assert_not_symlink "$decisions_file" "$decisions_file"
   printf '%s | %s\n' "$(timestamp_utc)" "$message" >> "$decisions_file"
 }
 

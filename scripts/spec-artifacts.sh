@@ -30,6 +30,15 @@ fi
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 gov_root="$($script_dir/governance-root.sh "$repo_root")"
 
+assert_not_symlink() {
+  local path="$1"
+  local label="${2:-path}"
+  if [[ -L "$path" ]]; then
+    echo "Refusing to write $label because it is a symlink: $path" >&2
+    exit 1
+  fi
+}
+
 for src in "$plan_src" "$shape_src" "$standards_src" "$references_src"; do
   if [[ ! -f "$src" ]]; then
     echo "Missing source file: $src" >&2
@@ -53,9 +62,18 @@ done
 spec_dir="$gov_root/specs/$folder_name"
 visuals_dir="$spec_dir/visuals"
 
+assert_not_symlink "$gov_root/specs" "$gov_root/specs"
+assert_not_symlink "$spec_dir" "$spec_dir"
+assert_not_symlink "$visuals_dir" "$visuals_dir"
+
 mkdir -p "$gov_root/specs"
 mkdir -p "$spec_dir"
 mkdir -p "$visuals_dir"
+
+assert_not_symlink "$spec_dir/plan.md" "$spec_dir/plan.md"
+assert_not_symlink "$spec_dir/shape.md" "$spec_dir/shape.md"
+assert_not_symlink "$spec_dir/standards.md" "$spec_dir/standards.md"
+assert_not_symlink "$spec_dir/references.md" "$spec_dir/references.md"
 
 cp "$plan_src" "$spec_dir/plan.md"
 cp "$shape_src" "$spec_dir/shape.md"
